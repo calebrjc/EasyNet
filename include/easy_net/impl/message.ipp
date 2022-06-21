@@ -9,7 +9,8 @@ namespace simple_net {
     template<typename T>
     std::ostream &operator<<(std::ostream &stream, const Message<T> &message) {
         stream << "Message(type=" << int(message.header.type) << ", id=" << message.header.id
-               << ", size=" << message.header.size << ")" return stream;
+               << ", size=" << message.header.size << ")";
+        return stream;
     }
 
     template<typename T, typename U>
