@@ -1,4 +1,4 @@
-// easy_net/asio_stuff.hpp
+// easy_net/core/asio_stuff.hpp
 // Author: Caleb Johnson-Cantrell
 
 #pragma once

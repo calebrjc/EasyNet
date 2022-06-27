@@ -1,9 +1,13 @@
-// File: easy_net/impl/message.ipp
+// File: easy_net/core/impl/message.ipp
 // Author: Caleb Johnson-Cantrell
 
 #pragma once
 
-#include "easy_net/message.hpp"
+#include "easy_net/core/message.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 
 namespace simple_net {
     template<typename T>

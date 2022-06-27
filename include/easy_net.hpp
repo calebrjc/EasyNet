@@ -3,13 +3,7 @@
 
 #pragma once
 
-#include "easy_net/message.hpp"
+#include "easy_net/core/message.hpp"
+#include "easy_net/core/tsqueue.hpp"
 
-/**
- * Server
- * Client
- * Connection
- * Message
- * Queue
- * Util
- */
+#include "easy_net/util/logging.hpp"

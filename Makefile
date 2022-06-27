@@ -7,8 +7,14 @@ INC = include
 ASIO_DIR = vendor/asio/asio
 ASIO_INC = $(ASIO_DIR)/include
 
+SPDLOG_DIR = vendor/spdlog
+SPDLOG_INC = $(SPDLOG_DIR)/include
+
 all: check_syntax
 
 check_syntax: CXXFLAGS += -fsyntax-only
 check_syntax: $(SRC)/easy_net.cpp
-	$(CXX) $(CXXFLAGS) -I$(INC) -I$(ASIO_INC) $<
+	$(CXX) $(CXXFLAGS) -I$(INC) -I$(ASIO_INC) -I$(SPDLOG_INC) $<
+
+example: $(SRC)/easy_net.cpp
+	$(CXX) $(CXXFLAGS) -I$(INC) -I$(ASIO_INC) -I$(SPDLOG_INC) $< -o $@
