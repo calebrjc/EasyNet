@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace simple_net {
+namespace easy_net {
     template<typename T>
     std::ostream &operator<<(std::ostream &stream, const Message<T> &message) {
         stream << "Message(type=" << int(message.header.type) << ", id=" << message.header.id
@@ -40,4 +40,4 @@ namespace simple_net {
 
         return message;
     }
-}  // namespace simple_net
+}  // namespace easy_net

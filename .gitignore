@@ -33,3 +33,5 @@
 
 # Editor-Specific Configuration
 .vscode/
+
+bin/

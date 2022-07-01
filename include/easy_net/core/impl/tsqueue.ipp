@@ -5,7 +5,7 @@
 
 #include "easy_net/core/tsqueue.hpp"
 
-namespace simple_net {
+namespace easy_net {
     template<typename T>
     TSQueue<T>::TSQueue() = default;
 
@@ -81,4 +81,4 @@ namespace simple_net {
             cv_.wait(cv_lock);
         }
     }
-}  // namespace simple_net
+}  // namespace easy_net

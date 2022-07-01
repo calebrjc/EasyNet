@@ -9,7 +9,7 @@
 #include <mutex>
 #include <queue>
 
-namespace simple_net {
+namespace easy_net {
     // A thread-safe (locked) implementation of a generic queue data structure
     template<typename T>
     class TSQueue {
@@ -56,6 +56,6 @@ namespace simple_net {
         std::condition_variable cv_;
         std::mutex cv_mux_;
     };
-}  // namespace simple_net
+}  // namespace easy_net
 
 #include "easy_net/core/impl/tsqueue.ipp"
