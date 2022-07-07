@@ -6,8 +6,8 @@
 #include <cstdlib>
 
 #include <condition_variable>
+#include <deque>
 #include <mutex>
-#include <queue>
 
 namespace easy_net {
     // A thread-safe (locked) implementation of a generic queue data structure
@@ -50,8 +50,8 @@ namespace easy_net {
         void wait();
 
       private:
-        std::queue<T> queue_;
-        std::mutex queue_mux_;
+        std::deque<T> deque_;
+        std::mutex deque_mux_;
 
         std::condition_variable cv_;
         std::mutex cv_mux_;

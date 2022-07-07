@@ -1,4 +1,4 @@
-// File: easy_net/core/impl/message.ipp
+// File: easy_net/core/impl/msg.ipp
 // Author: Caleb Johnson-Cantrell
 
 #pragma once
@@ -10,34 +10,34 @@
 #include <cstring>
 
 namespace easy_net {
-    template<typename T>
-    std::ostream &operator<<(std::ostream &stream, const Message<T> &message) {
-        stream << "Message(type=" << int(message.header.type) << ", id=" << message.header.id
-               << ", size=" << message.header.size << ")";
+    template<typename U>
+    std::ostream &operator<<(std::ostream &stream, const Message<U> &msg) {
+        stream << "Message(type=" << int(msg.header.type) << ", id=" << msg.header.id
+               << ", size=" << msg.header.size << ")";
         return stream;
     }
 
-    template<typename T, typename U>
-    Message<T> &operator<<(Message<T> message, const U &data) {
-        static_assert(std::is_standard_layout<U>::value, "The data is too complex to be held by this message");
+    template<typename U, typename V>
+    Message<U> &operator<<(Message<U> &msg, const V &data) {
+        static_assert(std::is_standard_layout<V>::value, "The data is too complex to be held by this msg");
 
-        size_t original_size = message.body.size();
-        message.body.resize(original_size + sizeof(U));
-        std::memcpy(message.body.data() + original_size, &data, sizeof(U));
-        message.header.size = (uint32_t)message.body.size();
+        size_t original_size = msg.body.size();
+        msg.body.resize(original_size + sizeof(V));
+        std::memcpy(msg.body.data() + original_size, &data, sizeof(V));
+        msg.header.size = (uint32_t)msg.body.size();
 
-        return message;
+        return msg;
     }
 
-    template<typename T, typename U>
-    Message<T> &operator>>(Message<T> message, const U &data) {
-        static_assert(std::is_standard_layout<U>::value, "The data is too complex to be pulled from this message");
+    template<typename U, typename V>
+    Message<U> &operator>>(Message<U> &msg, V &data) {
+        static_assert(std::is_standard_layout<V>::value, "The data is too complex to be pulled from this msg");
 
-        size_t new_size = message.body.size() - sizeof(U);
-        std::memcpy(&data, message.body.data() + new_size, sizeof(U));
-        message.body.resize(new_size);
-        message.header.size = (uint32_t)message.body.size();
+        size_t new_size = msg.body.size() - sizeof(V);
+        std::memcpy(&data, msg.body.data() + new_size, sizeof(V));
+        msg.body.resize(new_size);
+        msg.header.size = (uint32_t)msg.body.size();
 
-        return message;
+        return msg;
     }
 }  // namespace easy_net

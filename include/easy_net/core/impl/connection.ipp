@@ -11,7 +11,7 @@
 namespace easy_net {
     template<typename T>
     Connection<T>::Connection(tcp::socket socket, ReceiveCallback on_recv, DisconnectCallback on_disconnect, uint32_t id) :
-        socket_(std::move(socket)), on_message_receive_(on_recv), on_disconnect_(on_disconnect), id_(id) {}
+        socket_(std::move(socket)), on_message_receive_(on_recv), on_disconnect_(on_disconnect), id_(id), is_open_(false) {}
 
     template<typename T>
     typename Connection<T>::Ptr Connection<T>::create(tcp::socket socket, ReceiveCallback on_recv, DisconnectCallback on_disconnect, uint32_t id) {
@@ -28,6 +28,7 @@ namespace easy_net {
         }
 
         recv_message_();
+        is_open_ = true;
         EZN_INFO("{:06d}: Connection opened", id_);
     }
 
@@ -39,14 +40,15 @@ namespace easy_net {
 
         asio::post(socket_.get_executor(), [this]() {
             this->socket_.close();
-            on_disconnect_(this->shared_from_this());
+            this->on_disconnect_(this->shared_from_this());
             EZN_INFO("{:06d}: Connection closed", id_);
         });
+        is_open_ = false;
     }
 
     template<typename T>
     bool Connection<T>::is_connected() const {
-        return socket_.is_open();
+        return socket_.is_open() && is_open_;
     }
 
     template<typename T>
@@ -67,7 +69,7 @@ namespace easy_net {
     template<typename T>
     void Connection<T>::send_message(Message<T> msg) {
         asio::post(socket_.get_executor(), [this, msg]() {
-            bool writing = !out_queue_.empty();
+            bool writing = !out_queue_.is_empty();
             out_queue_.push(msg);
 
             if (!writing) {
@@ -77,23 +79,23 @@ namespace easy_net {
     }
 
     template<typename T>
-    void Connection<T>::send_message_(Message<T> msg) {
-        auto to_send = const_buffer_sequence(
-            asio::buffer(&out_queue_.front().header, sizeof(typename Message<T>::Header)),
-            asio::buffer(out_queue_.front().body.data(), out_queue_.front().body.size()));
+    void Connection<T>::send_message_() {
+        asio::async_write(socket_,
+                          const_buffer_sequence(
+                              asio::buffer(&out_queue_.front().header, sizeof(typename Message<T>::Header)),
+                              asio::buffer(out_queue_.front().body.data(), out_queue_.front().body.size())),
+                          [this](std::error_code ec, size_t length) {
+                              if (ec) {
+                                  EZN_INFO("{:06d}: Failed to send a message' {}", this->id_, ec.message());
+                                  close();
+                                  return;
+                              }
 
-        asio::async_write(socket_, to_send, [this](std::error_code ec, size_t length) {
-            if (ec) {
-                EZN_INFO("{:06d}: Failed to send a message' {}", this->id_, ec.message());
-                close();
-                return;
-            }
-
-            out_queue_.pop();
-            if (out_queue_.empty()) {
-                send_message_();
-            }
-        });
+                              out_queue_.pop();
+                              if (out_queue_.is_empty()) {
+                                  send_message_();
+                              }
+                          });
     }
 
     template<typename T>
@@ -102,7 +104,7 @@ namespace easy_net {
                          [this](std::error_code ec, size_t length) {
                              if (ec) {
                                  EZN_INFO("{:06d}: Failed to read a header; {}", this->id_, ec.message());
-                                 close();
+                                 this->close();
                                  return;
                              }
 
@@ -112,15 +114,15 @@ namespace easy_net {
                                                   [this](std::error_code ec, size_t length) {
                                                       if (ec) {
                                                           EZN_INFO("{:06d}: Failed to read a body; {}", this->id_, ec.message());
-                                                          close();
+                                                          this->close();
                                                           return;
                                                       }
 
-                                                      on_message_receive_(incoming_message_, this->shared_from_this());
+                                                      this->on_message_receive_(incoming_message_, this->shared_from_this());
                                                       recv_message_();
                                                   });
                              } else {
-                                 on_message_receive_(incoming_message_, this->shared_from_this());
+                                 this->on_message_receive_(incoming_message_, this->shared_from_this());
                                  recv_message_();
                              }
                          });

@@ -12,3 +12,5 @@ namespace easy_net {
     template<typename... Args>
     auto buffer_sequence(Args&&... args);
 }  // namespace easy_net
+
+#include "easy_net/util/impl/asio_buffer_sequences.ipp"

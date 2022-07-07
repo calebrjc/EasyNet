@@ -85,20 +85,25 @@ namespace easy_net {
             // Allow the user to veto the connection
             bool connection_allowed = on_client_connect(client_endpoint);
             if (connection_allowed) {
-                auto new_connection = Connection<T>::create(std::move(socket), recieve_handler, disconnect_handler, next_id++);
-                // auto &client_socket = new_connection->socket();
-
                 // Validate the connection
                 // TODO(Caleb): Add socket-level transaction for host to validate client
 
                 // Issue an ID to the connection
+                std::error_code ec;
+                uint32_t conn_id     = next_id++;
+                uint32_t net_conn_id = asio::detail::socket_ops::host_to_network_long(conn_id);
+                asio::write(socket, asio::buffer(&net_conn_id, sizeof(uint32_t)), asio::transfer_exactly(sizeof(uint32_t)), ec);
+                if (ec) {
+                    EZN_ERROR("{:06d}: Connection rejected; could not allocate id; {}", ec.message());
+                } else {
+                    // Add the new connection to the container of connections
+                    auto new_connection = Connection<T>::create(std::move(socket), recieve_handler, disconnect_handler, conn_id);
+                    connections_.push_back(new_connection);
 
-                // Add the new connection to the container of connections
-                connections_.push_back(new_connection);
-
-                // Open the connection
-                connections_.back()->open();
-                EZN_INFO("{:06d}: Connection from {} accepted", new_connection->id(), new_connection->remote_endpoint());
+                    // Open the connection
+                    connections_.back()->open();
+                    EZN_INFO("{:06d}: Connection from {} accepted", new_connection->id(), new_connection->remote_endpoint());
+                }
             }
 
             await_connection_();

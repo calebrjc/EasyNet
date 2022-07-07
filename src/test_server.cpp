@@ -7,14 +7,18 @@
 
 using namespace easy_net;
 
-enum class CustomMessageType { PING };
+enum class CustomMessageType { CMT_INVALID,
+                               CMT_ECHO };
 
 class Server : public ServerInterface<CustomMessageType> {
   public:
     Server(uint16_t port) :
         ServerInterface(port) {}
 
-    void on_message_receive(Message<CustomMessageType> message, Connection<CustomMessageType>::Ptr client) override {}
+    void on_message_receive(Message<CustomMessageType> msg, Connection<CustomMessageType>::Ptr client) override {
+        std::cout << msg << "\n";
+        client->send_message(msg);
+    }
 
     bool on_client_connect(Endpoint client_endpoint) override {
         return true;

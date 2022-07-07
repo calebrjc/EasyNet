@@ -15,7 +15,7 @@ using asio::ip::tcp;
 
 namespace easy_net {
     template<typename T>
-    class Connection : std::enable_shared_from_this<Connection<T>> {
+    class Connection : public std::enable_shared_from_this<Connection<T>> {
       public:
         typedef std::shared_ptr<Connection<T>> Ptr;
         typedef std::function<void(Message<T>, Ptr)> ReceiveCallback;
@@ -43,7 +43,7 @@ namespace easy_net {
         const tcp::socket &socket();
 
       private:
-        void send_message_(Message<T> msg);
+        void send_message_();
         void recv_message_();
 
         tcp::socket socket_;
@@ -55,6 +55,8 @@ namespace easy_net {
 
         TSQueue<Message<T>> out_queue_;
         Message<T> incoming_message_;
+
+        bool is_open_;
     };
 }  // namespace easy_net
 
